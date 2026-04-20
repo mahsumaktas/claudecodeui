@@ -178,15 +178,14 @@ function dispatchEvent(evt) {
   if (!sessionID) return;
 
   const route = sessionRoutes.get(sessionID);
-  if (!route || !route.ws || route.ws.readyState !== 1) return;
+  if (!route || !route.ws) return;
 
   const normalized = normalizeSseEvent(evt, sessionID, route);
   for (const msg of normalized) {
     try {
-      route.ws.send(JSON.stringify({
-        type: mapKindToWsType(msg.kind),
-        data: msg,
-      }));
+      // writer.send() is a WebSocketWriter that handles readyState + JSON.stringify.
+      // Pass the raw NormalizedMessage — the client unpacks by `kind`.
+      route.ws.send(msg);
     } catch (e) {
       console.warn('[opencode] ws send failed:', e.message);
     }
@@ -194,16 +193,6 @@ function dispatchEvent(evt) {
 
   if (normalized.some((m) => m.kind === 'complete' || m.kind === 'error')) {
     sessionRoutes.delete(sessionID);
-  }
-}
-
-function mapKindToWsType(kind) {
-  switch (kind) {
-    case 'session_created': return 'session-created';
-    case 'status': return 'claude-status';
-    case 'error': return 'claude-error';
-    case 'complete': return 'claude-complete';
-    default: return 'claude-response';
   }
 }
 
@@ -360,7 +349,14 @@ export async function spawnOpencode(command, options = {}, ws) {
     baseUrl = await ensureDaemon();
     await ensureSseSubscription();
   } catch (err) {
-    ws?.send(JSON.stringify({ type: 'claude-error', error: `OpenCode daemon start failed: ${err.message}` }));
+    ws?.send(createNormalizedMessage({
+      id: generateMessageId('opencode'),
+      sessionId: sessionId || '',
+      timestamp: new Date().toISOString(),
+      provider: 'opencode',
+      kind: 'error',
+      content: `OpenCode daemon start failed: ${err.message}`,
+    }));
     throw err;
   }
 
@@ -378,7 +374,14 @@ export async function spawnOpencode(command, options = {}, ws) {
       const session = await res.json();
       targetSessionId = session.id;
     } catch (err) {
-      ws?.send(JSON.stringify({ type: 'claude-error', error: `Session create failed: ${err.message}` }));
+      ws?.send(createNormalizedMessage({
+        id: generateMessageId('opencode'),
+        sessionId: '',
+        timestamp: new Date().toISOString(),
+        provider: 'opencode',
+        kind: 'error',
+        content: `Session create failed: ${err.message}`,
+      }));
       throw err;
     }
   }
@@ -386,16 +389,13 @@ export async function spawnOpencode(command, options = {}, ws) {
   sessionRoutes.set(targetSessionId, { ws, partTypeById: new Map() });
   activeOpencodeSessions.set(targetSessionId, { startedAt: Date.now(), projectPath });
 
-  ws?.send(JSON.stringify({
-    type: 'session-created',
-    data: createNormalizedMessage({
-      id: generateMessageId('opencode'),
-      sessionId: targetSessionId,
-      timestamp: new Date().toISOString(),
-      provider: 'opencode',
-      kind: 'session_created',
-      newSessionId: targetSessionId,
-    }),
+  ws?.send(createNormalizedMessage({
+    id: generateMessageId('opencode'),
+    sessionId: targetSessionId,
+    timestamp: new Date().toISOString(),
+    provider: 'opencode',
+    kind: 'session_created',
+    newSessionId: targetSessionId,
   }));
 
   try {
@@ -415,7 +415,14 @@ export async function spawnOpencode(command, options = {}, ws) {
   } catch (err) {
     sessionRoutes.delete(targetSessionId);
     activeOpencodeSessions.delete(targetSessionId);
-    ws?.send(JSON.stringify({ type: 'claude-error', error: `Prompt failed: ${err.message}` }));
+    ws?.send(createNormalizedMessage({
+      id: generateMessageId('opencode'),
+      sessionId: targetSessionId,
+      timestamp: new Date().toISOString(),
+      provider: 'opencode',
+      kind: 'error',
+      content: `Prompt failed: ${err.message}`,
+    }));
     try { notifyRunFailed({ provider: 'opencode', sessionId: targetSessionId, error: err.message }); } catch { /* noop */ }
     throw err;
   }
