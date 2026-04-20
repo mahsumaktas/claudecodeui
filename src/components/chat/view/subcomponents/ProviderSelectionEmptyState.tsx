@@ -8,6 +8,7 @@ import {
   CURSOR_MODELS,
   CODEX_MODELS,
   GEMINI_MODELS,
+  OPENCODE_MODELS,
 } from "../../../../../shared/modelConstants";
 import type { ProjectSession, LLMProvider } from "../../../../types/app";
 import { NextTaskBanner } from "../../../task-master";
@@ -39,6 +40,8 @@ type ProviderSelectionEmptyStateProps = {
   setCodexModel: (model: string) => void;
   geminiModel: string;
   setGeminiModel: (model: string) => void;
+  opencodeModel: string;
+  setOpencodeModel: (model: string) => void;
   tasksEnabled: boolean;
   isTaskMasterInstalled: boolean | null;
   onShowAllTasks?: (() => void) | null;
@@ -56,12 +59,14 @@ const PROVIDER_GROUPS: ProviderGroup[] = [
   { id: "cursor", name: "Cursor", models: CURSOR_MODELS.OPTIONS },
   { id: "codex", name: "OpenAI", models: CODEX_MODELS.OPTIONS },
   { id: "gemini", name: "Google", models: GEMINI_MODELS.OPTIONS },
+  { id: "opencode", name: "OpenCode (local)", models: OPENCODE_MODELS.OPTIONS },
 ];
 
 function getModelConfig(p: LLMProvider) {
   if (p === "claude") return CLAUDE_MODELS;
   if (p === "codex") return CODEX_MODELS;
   if (p === "gemini") return GEMINI_MODELS;
+  if (p === "opencode") return OPENCODE_MODELS;
   return CURSOR_MODELS;
 }
 
@@ -71,10 +76,12 @@ function getCurrentModel(
   cu: string,
   co: string,
   g: string,
+  oc: string,
 ) {
   if (p === "claude") return c;
   if (p === "codex") return co;
   if (p === "gemini") return g;
+  if (p === "opencode") return oc;
   return cu;
 }
 
@@ -82,6 +89,7 @@ function getProviderDisplayName(p: LLMProvider) {
   if (p === "claude") return "Claude";
   if (p === "cursor") return "Cursor";
   if (p === "codex") return "Codex";
+  if (p === "opencode") return "OpenCode";
   return "Gemini";
 }
 
@@ -99,6 +107,8 @@ export default function ProviderSelectionEmptyState({
   setCodexModel,
   geminiModel,
   setGeminiModel,
+  opencodeModel,
+  setOpencodeModel,
   tasksEnabled,
   isTaskMasterInstalled,
   onShowAllTasks,
@@ -116,6 +126,7 @@ export default function ProviderSelectionEmptyState({
     cursorModel,
     codexModel,
     geminiModel,
+    opencodeModel,
   );
 
   const currentModelLabel = useMemo(() => {

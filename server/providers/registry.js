@@ -12,11 +12,13 @@ import { claudeAdapter } from './claude/adapter.js';
 import { cursorAdapter } from './cursor/adapter.js';
 import { codexAdapter } from './codex/adapter.js';
 import { geminiAdapter } from './gemini/adapter.js';
+import { opencodeAdapter } from './opencode/adapter.js';
 
 import * as claudeStatus from './claude/status.js';
 import * as cursorStatus from './cursor/status.js';
 import * as codexStatus from './codex/status.js';
 import * as geminiStatus from './gemini/status.js';
+import * as opencodeStatus from './opencode/status.js';
 
 /**
  * @typedef {import('./types.js').ProviderAdapter} ProviderAdapter
@@ -34,11 +36,13 @@ providers.set('claude', claudeAdapter);
 providers.set('cursor', cursorAdapter);
 providers.set('codex', codexAdapter);
 providers.set('gemini', geminiAdapter);
+providers.set('opencode', opencodeAdapter);
 
 statusCheckers.set('claude', claudeStatus);
 statusCheckers.set('cursor', cursorStatus);
 statusCheckers.set('codex', codexStatus);
 statusCheckers.set('gemini', geminiStatus);
+statusCheckers.set('opencode', opencodeStatus);
 
 /**
  * Get a provider adapter by name.

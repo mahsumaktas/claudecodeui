@@ -72,6 +72,20 @@ export const CODEX_MODELS = {
 };
 
 /**
+ * OpenCode Models (local via Ollama)
+ * Values are in "providerID/modelID" format as expected by the opencode HTTP API.
+ */
+export const OPENCODE_MODELS = {
+  OPTIONS: [
+    { value: "ollama/qwen3.6:35b-a3b", label: "Qwen 3.6 35B A3B (local)" },
+    { value: "ollama/gpt-oss:latest", label: "GPT-OSS 20B (local)" },
+    { value: "ollama/gemma4:26b", label: "Gemma 4 26B (local)" },
+  ],
+
+  DEFAULT: "ollama/gpt-oss:latest",
+};
+
+/**
  * Gemini Models
  */
 export const GEMINI_MODELS = {
