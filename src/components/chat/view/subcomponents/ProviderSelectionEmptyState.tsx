@@ -153,6 +153,9 @@ export default function ProviderSelectionEmptyState({
       } else if (providerId === "gemini") {
         setGeminiModel(modelValue);
         localStorage.setItem("gemini-model", modelValue);
+      } else if (providerId === "opencode") {
+        setOpencodeModel(modelValue);
+        localStorage.setItem("opencode-model", modelValue);
       } else {
         setCursorModel(modelValue);
         localStorage.setItem("cursor-model", modelValue);
@@ -161,7 +164,7 @@ export default function ProviderSelectionEmptyState({
       setDialogOpen(false);
       setTimeout(() => textareaRef.current?.focus(), 100);
     },
-    [setProvider, setClaudeModel, setCursorModel, setCodexModel, setGeminiModel, textareaRef],
+    [setProvider, setClaudeModel, setCursorModel, setCodexModel, setGeminiModel, setOpencodeModel, textareaRef],
   );
 
   /* ── New session — provider + model picker ── */
